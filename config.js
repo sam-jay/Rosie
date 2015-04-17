@@ -17,11 +17,13 @@
 	  },
 	  logging: {
 	  	hostname: 'localhost',
-	  	port: 3001,
+	  	port: 4001,
 	  	path: '/logger'
 	  },
 	  auth: {
-
+	  	hostname: 'localhost',
+	  	port: 4000,
+	  	path: '/auth_service'
 	  }
 	};
 })();
