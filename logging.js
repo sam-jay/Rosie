@@ -5,7 +5,7 @@
 			http 		= require('http'),
 			config	= require('./config').logging;
 
-	var before = function (req, callback) {
+	var before = function(req, callback) {
 		var options = {
 			hostname: config.hostname,
 			port: config.port,
@@ -31,7 +31,7 @@
 		    body.data.request.headers[h] = req.headers[h];
 		  }
 		}
-		http.request(options, function (response) {
+		http.request(options, function(response) {
 			if (String(response.statusCode) === String('400')) {
 				response.errorBody = {
 					message: 'Winston replied NOT OK'
@@ -43,7 +43,7 @@
 		}).write(body).end();
 	};
 
-	var after = function (res, callback) {
+	var after = function(res, callback) {
 
 	};
 

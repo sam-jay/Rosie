@@ -11,22 +11,22 @@
 		'AUTH': require('./auth')
 	};
 
-	var execute = function (req, res) {
+	var execute = function(req, res) {
 		var resource = req.resource,
 				operations = [],
 				apiResponse = null;
 
 		/* Sort middleware by priority */
-		var compareFunction = function (x, y) {
+		var compareFunction = function(x, y) {
 			return y.priority - x.priority;
 		};
 		var before = resource.middleware.before.sort(compareFunction),
 				after = resource.middleware.after.sort(compareFunction);
 
 		/* Register before handlers */
-		before.forEach(function (middleware, index, array) {
-			operations.push(function (callback) {
-				services[middleware.name].before(req, function (err) {
+		before.forEach(function(middleware, index, array) {
+			operations.push(function(callback) {
+				services[middleware.name].before(req, function(err) {
 					if (err) return callback(err);
 					return callback(null);
 				});
@@ -34,7 +34,7 @@
 		});
 
 		/* Register api request handler */
-		operations.push(function (callback) {
+		operations.push(function(callback) {
 			var options = {
 				hostname: resource.origin.hostname,
 				port: resource.origin.port,
@@ -42,15 +42,15 @@
 				method: req.method,
 				headers: req.headers
 			};
-			http.request(options, function (response) {
+			http.request(options, function(response) {
 				var body = '';
 				if (String(response.statusCode).charAt(0) != '2') {
 					return callback(response.statusCode);
 				}
 				apiResponse = response;
-				response.on('data', function (data) {
+				response.on('data', function(data) {
 					body += data;
-				}).on('end', function () {
+				}).on('end', function() {
 					apiResponse.body = body;
 					return callback(null);
 				});
@@ -58,9 +58,9 @@
 		});
 
 		/* Register after handlers */
-		after.forEach(function (middleware, index, array) {
-			operations.push(function (callback) {
-				services[middleware.name].after(apiResponse, function (err) {
+		after.forEach(function(middleware, index, array) {
+			operations.push(function(callback) {
+				services[middleware.name].after(apiResponse, function(err) {
 					if (err) return callback(err);
 					return callback(null);
 				});
@@ -68,7 +68,7 @@
 		});
 
 		/* Execute all handlers in series */
-		async.waterfall(operations, function (err, result) {
+		async.waterfall(operations, function(err, result) {
 			if (err) return res.status(err).json(req.errorBody ? req.errorBody :
 																						apiResponse.errorBody);
 			return res.status(apiRespnse.statusCode).json(apiResponse.body);

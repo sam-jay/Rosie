@@ -6,7 +6,7 @@
 			Resource 	= require('./resource.model'),
 			router		= express.Router();
 
-	router.get('/resources/:id', function (req, res) {
+	router.get('/resources/:id', function(req, res) {
 		Resource.findbyId(req.params.id, function(err, resource) {
 			if (err) return res.status(500).send(err);
 			if (!resource) return res.status(404).send();
@@ -15,20 +15,20 @@
 		});
 	});
 
-	router.post('/resources', function (req, res) {
+	router.post('/resources', function(req, res) {
 		if (req.body.prefix[0] !== '/') {
 			req.body.prefix = '/' + req.body.prefix;
 		}
-		Resource.create(req.body, function (err, resource) {
+		Resource.create(req.body, function(err, resource) {
 			if (err) return res.status(500).send(err);
 			resource.url = '/api_manager/resources/' + resource._id;
 			return res.status(201).json(resource);
 		});
 	});
 
-	router.put('/resources/:id', function (req, res) {
+	router.put('/resources/:id', function(req, res) {
 		if (req.body._id) delete req.body._id;
-		Resource.findById(req.params.id, function (err, resource) {
+		Resource.findById(req.params.id, function(err, resource) {
 			if (err) return res.status(500).send(err);
 			if (!resource) return res.status(404).send();
 			var updated = _.merge(resource, req.body);
@@ -40,7 +40,7 @@
 		});
 	});
 
-	router.delete('/resources/:id', function (req, res) {
+	router.delete('/resources/:id', function(req, res) {
 		Resource.findById(req.params.id, function(err, resource) {
 			if (err) return res.status(500).send(err);
 			if (!resource) return res.status(404).send();

@@ -6,7 +6,7 @@
 			Middleware 	= require('./middleware'),
 			router 			= express.Router();
 
-	router.all('/', function (req, res) {
+	router.all('/', function(req, res) {
 		/* Setup query to find resource */
 		var query = {};
 		query['$where'] = function() {
@@ -14,7 +14,7 @@
 		}.toString().replace('url', req.originalUrl);
 
 		/* Execute query */
-		Resource.findOne(query, function (err, resource) {
+		Resource.findOne(query, function(err, resource) {
 			/* Handle errors */
 			if (err) return res.status(500).send(err);
 			if (!resource) return res.status(404).send();

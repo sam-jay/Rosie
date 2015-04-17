@@ -4,7 +4,7 @@
 	var express = require('express'),
 			config	= require('./config').auth;
 
-	var before = function (req, callback) {
+	var before = function(req, callback) {
 		var options = {
 			hostname: config.hostname,
 			port: config.port,
@@ -21,7 +21,7 @@
 		} else if (req.headers['authorization'].split(' ')[0].equals('Basic')) {
 			/* Get tokens from Stan */
 			options.path = '/auth_service/tokens'
-			http.request(options, function (response) {
+			http.request(options, function(response) {
 				var body = '';
 				if (String(response.statusCode).charAt(0) != '2') {
 					req.errorBody = {
@@ -29,9 +29,9 @@
 					};
 					return callback(401);
 				}
-				response.on('data', function (data) {
+				response.on('data', function(data) {
 					body += data;
-				}).on('end', function () {
+				}).on('end', function() {
 					return authorized(body.tokens.join('&&')) ? callback() : callback(401);
 				});
 			}).end(); 
@@ -48,7 +48,7 @@
 		}
 	};
 
-	var after = function (res, callback) {
+	var after = function(res, callback) {
 
 	};
 
