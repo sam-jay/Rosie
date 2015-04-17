@@ -11,10 +11,8 @@
 		'AUTH': require('./auth')
 	};
 
-	var execute = function (context) {
-		var req = context.req,
-				res = context.res,
-				resource = context.resource,
+	var execute = function (req, res) {
+		var resource = req.resource,
 				operations = [],
 				apiResponse = null;
 

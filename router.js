@@ -20,14 +20,9 @@
 			if (!resource) return res.status(404).send();
 			if (resource.verbs.indexOf(req.method) === -1)	// Method not allowed
 				return res.set('Allow', resource.verbs.join(', ')).status(405).send();
-
-			/* Set context and execute middleware handler */
-			var context = {
-				req: req, 
-				res: res, 
-				resource: resource
-			};
-			return Middleware.execute(context);
+			req.resource = resource;
+			res.resource = resource;
+			return Middleware.execute(req, res);
 		});
 
 	});

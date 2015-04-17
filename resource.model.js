@@ -34,7 +34,7 @@
 				name: {
 					type: String,
 					required: '{PATH} is required!',
-					enum: ['LOGGING', 'AUTH']
+					enum: ['LOGGING']
 				},
 				priority: {
 					type: Number,
