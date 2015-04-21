@@ -33,17 +33,16 @@
 		/* Register api request handler */
 		operations.push(function(callback) {
 			var options = {
-				host: 'jsonplaceholder.typicode.com',
-				//host: resource.origin.hostname,
-				//port: resource.origin.port,
+				host: resource.origin.hostname,
+				port: resource.origin.port,
 				path: resource.origin.path + req.originalUrl.substring(resource.prefix.length + 1),
 				method: req.method,
 				headers: req.headers
 			};
-			delete options.headers['nonce'];
+			delete options.headers['host'];
 			console.log(options);
 			var newReq = http.request(options, function(response) {
-				//console.log(response);
+				console.log(response.statusCode);
 				var body = '';
 				if (String(response.statusCode).charAt(0) != '2') {
 					return callback(response.statusCode);
@@ -76,9 +75,9 @@
 
 		/* Execute all handlers in series */
 		async.waterfall(operations, function(err, result) {
-			if (err) return res.status(err).json(req.errorBody ? req.errorBody :
+			if (err) return res.status(err).send(req.errorBody ? req.errorBody :
 																						apiResponse.errorBody);
-			return res.status(apiRespnse.statusCode).json(apiResponse.body);
+			return res.status(apiResponse.statusCode).send(apiResponse.body);
 		});
 	};
 
