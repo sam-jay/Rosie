@@ -6,15 +6,12 @@
 			url 		= require('url'),
 			async		= require('async');
 
-	var services = {
-		'LOGGING': require('./logging'),
-		'AUTH': require('./auth')
-	};
+	var services = {};
 
 	var execute = function(req, res) {
 		var resource = req.resource,
 				operations = [],
-				apiResponse = null;
+				apiResponse = {};
 
 		/* Sort middleware by priority */
 		var compareFunction = function(x, y) {
@@ -36,13 +33,17 @@
 		/* Register api request handler */
 		operations.push(function(callback) {
 			var options = {
-				hostname: resource.origin.hostname,
-				port: resource.origin.port,
-				path: resource.origin.path,
+				host: 'jsonplaceholder.typicode.com',
+				//host: resource.origin.hostname,
+				//port: resource.origin.port,
+				path: resource.origin.path + req.originalUrl.substring(resource.prefix.length + 1),
 				method: req.method,
 				headers: req.headers
 			};
-			http.request(options, function(response) {
+			delete options.headers['nonce'];
+			console.log(options);
+			var newReq = http.request(options, function(response) {
+				//console.log(response);
 				var body = '';
 				if (String(response.statusCode).charAt(0) != '2') {
 					return callback(response.statusCode);
@@ -51,10 +52,15 @@
 				response.on('data', function(data) {
 					body += data;
 				}).on('end', function() {
+					console.log('api response body: ' + body);
 					apiResponse.body = body;
 					return callback(null);
 				});
-			}).write(req.body).end();
+			});
+			if (req.body) {
+				newReq.write(JSON.stringify(req.body));
+			}
+			newReq.end();
 		});
 
 		/* Register after handlers */
@@ -75,8 +81,12 @@
 		});
 	};
 
-	module.exports = {
-		execute: execute
-	};
+	module.exports = function(client) {
+		services['LOGGING'] = require('./logging');
+		services['AUTH'] = require('./auth')(client);
+		return {
+			execute: execute
+		};
+	}
 
 })();

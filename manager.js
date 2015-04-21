@@ -4,7 +4,8 @@
 	var _ 				= require('lodash'),
 			express		= require('express'),
 			Resource 	= require('./resource.model'),
-			router		= express.Router();
+			router		= express.Router(),
+			async			= require('async');
 
 	router.get('/resources/:id', function(req, res) {
 		Resource.findbyId(req.params.id, function(err, resource) {
@@ -22,6 +23,7 @@
 		Resource.create(req.body, function(err, resource) {
 			if (err) return res.status(500).send(err);
 			resource.url = '/api_manager/resources/' + resource._id;
+			console.log('created new resource');
 			return res.status(201).json(resource);
 		});
 	});
@@ -51,5 +53,28 @@
 		});
 	});
 
-	module.exports = router;
+	module.exports = function(client) {
+
+		router.post('/updateResourceTokens', function(req, res) {
+			if (req.body) {
+				client.keys('token:*', function(err, rows) {
+					if (err) return res.status(500).send();
+					async.each(rows, function(row, callbackDelete) {
+						client.del(row, callbackDelete);
+					}, function() {
+						async.each(req.body, function(item, callbackSet) {
+							client.set('token:' + item.resource_token, item.resource_id, callbackSet);
+						}, function() {
+							client.keys('token:*', function(err, rows) {
+								console.log(rows);
+							});
+							return res.status(200).send();
+						});
+					});
+				});
+			}
+		});
+
+		return router;
+	}
 })();

@@ -15,8 +15,12 @@
 
   var app = express();
   config.express(app);
-  app.use('/api_manager/', require('./manager'));
-  app.use('/*', require('./router'));
+
+  app.use(require('./nonce')(client));
+
+  app.use('/api_manager/', require('./manager')(client));
+  app.use('/*', require('./router')(client));
+
   app.listen(config.port, function() {
   	console.log('listening on port ' + config.port);
   });

@@ -2,7 +2,10 @@
 	'use strict';
 
 	var express = require('express'),
-			config	= require('./config').auth;
+			config	= require('./config').auth,
+			async = require('async');
+
+	var redis = {};
 
 	var before = function(req, callback) {
 		var options = {
@@ -13,7 +16,7 @@
 				'Content-Type': 'application/json'
 			}
 		};
-		if (!req.headers['Authorization']) {
+		if (!req.headers['authorization']) {
 			req.errorBody = {
 				'message': 'No credentials provided in Authorization header'
 			};
@@ -41,10 +44,25 @@
 
 		function authorized(tokens) {
 			tokenArray = tokens.split('&&');
-			// TODO : AUTH STUFF
-			req.errorBody = {
+			async.each(tokenArray, function(token, cb) {
+				redis.client.get('token:' + token, function(err, reply) {
+					if (!reply || req.resource.prefix !== reply) {
+						return cb();
+					} else {
+						return cb(reply);
+					}
+				});
+			}, function(reply) {
+				if (reply) {
+					// Grant access
+					return callback();
+				} else {
+					req.errorBody = {
 						'message': 'Access denied'
-			};
+					};
+					return callback(401);
+				}
+			});
 		}
 	};
 
@@ -52,8 +70,12 @@
 
 	};
 
-	module.exports = {
-		before: before,
-		after: after
+	module.exports = function(client) {
+		redis.client = client;
+		return {
+			before: before,
+			after: after
+		};
 	};
+
 })();

@@ -5,7 +5,7 @@
 			cookieParser 	= require('cookie-parser');
 
 	module.exports = {
-		port: 3002,
+		port: 3001,
   	// MongoDB connection options
 	  mongo: {
 	    uri: 'mongodb://localhost/rosie-dev'
