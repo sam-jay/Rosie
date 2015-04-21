@@ -53,6 +53,7 @@
 				}).on('end', function() {
 					console.log('api response body: ' + body);
 					apiResponse.body = body;
+					apiResponse.requestedUrl = req.originalUrl;
 					return callback(null);
 				});
 			});
