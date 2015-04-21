@@ -18,7 +18,10 @@
 			Resource.findOne(query, function(err, resource) {
 				/* Handle errors */
 				if (err) return res.status(500).send(err);
-				if (!resource) return res.status(404).send();
+				if (!resource) {
+					console.log('No resource found!');
+					return res.status(404).send();
+				}
 				if (resource.verbs.indexOf(req.method) === -1)	// Method not allowed
 					return res.set('Allow', resource.verbs.join(', ')).status(405).send();
 				req.resource = resource;
