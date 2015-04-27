@@ -71,7 +71,7 @@
 		async.waterfall(operations, function(err, result) {
 			if (err === 'finished')
 				return;
-			return res.status(apiResponse.statusCode).send(apiResponse.body);
+			return res.status(req.apiResponse.statusCode).send(req.apiResponse.body);
 		});
 	};
 
