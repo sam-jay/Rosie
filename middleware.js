@@ -62,9 +62,7 @@
 				console.log(JSON.stringify(req.body));
 				newReq.write(JSON.stringify(req.body));
 			}
-			console.log('before end');
 			newReq.end();
-			console.log('after end');
 		});
 
 		/* Register after handlers */

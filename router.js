@@ -19,7 +19,7 @@
 				/* Handle errors */
 				if (err) return res.status(500).send(err);
 				if (!resource) {
-					console.log('No resource found!');
+					console.log('No resource found!')	;
 					return res.status(404).send();
 				}
 				if (resource.verbs.indexOf(req.method) === -1)	// Method not allowed
