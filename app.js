@@ -16,8 +16,6 @@
   var app = express();
   config.express(app);
 
-  app.use(require('./nonce')(client));
-
   app.use('/api_manager/', require('./manager')(client));
   app.use('/*', require('./router')(client));
 

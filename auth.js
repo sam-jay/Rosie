@@ -3,11 +3,12 @@
 
 	var express = require('express'),
 			config	= require('./config').auth,
+			http		= require('http'),
 			async = require('async');
 
 	var redis = {};
 
-	var before = function(req, callback) {
+	var before = function(req, res, callback) {
 		var options = {
 			hostname: config.hostname,
 			port: config.port,
@@ -17,37 +18,45 @@
 			}
 		};
 		if (!req.headers['authorization']) {
-			req.errorBody = {
+			res.status(401).json({
 				'message': 'No credentials provided in Authorization header'
-			};
-			return callback(401);
-		} else if (req.headers['authorization'].split(' ')[0].equals('Basic')) {
+			});
+			return callback('finished');
+		} else if (req.headers['authorization'].split(' ')[0] === 'Basic') {
 			/* Get tokens from Stan */
-			options.path = '/auth_service/tokens'
+			options.path = '/auth_service/tokens';
+			options.headers['authorization'] = req.headers['authorization'];
 			http.request(options, function(response) {
 				var body = '';
-				if (String(response.statusCode).charAt(0) != '2') {
-					req.errorBody = {
-						'message': 'Could not retrieve access tokens from Auth server'
-					};
-					return callback(401);
-				}
 				response.on('data', function(data) {
 					body += data;
 				}).on('end', function() {
-					return authorized(body.tokens.join('&&')) ? callback() : callback(401);
+					console.log('stan: '+response.statusCode);
+					console.log('stan: '+body);
+					if (String(response.statusCode).charAt(0) != '2') {
+						res.status(401).json({
+							'message': 'Could not retrieve access tokens from Auth server'
+						});
+						return callback('finished');
+					}
+					return authorize(JSON.parse(body).tokens.join('&&'));
 				});
 			}).end(); 
-		} else if (req.headers['authorization'].split(' ')[0].equals('Bearer')) {
-			return authorized(response.headers['authorization'].split(' ')[1]) ? callback() : callback(401);
+		} else if (req.headers['authorization'].split(' ')[0] === 'Bearer') {
+			return authorize(req.headers['authorization'].split(' ')[1]);
+		} else {
+			req.errorBody = {
+				'message': 'Invalid authorization header. Header must contain Basic or Bearer.'
+			};
+			return callback(401);
 		}
 
-		function authorized(tokens) {
-			tokenArray = tokens.split('&&');
+		function authorize(tokens) {
+			var tokenArray = tokens.split('&&');
 			async.each(tokenArray, function(token, cb) {
 				redis.client.get('token:' + token, function(err, reply) {
 					if (!reply || req.resource.prefix !== reply) {
-						return cb();
+						return cb(null);
 					} else {
 						return cb(reply);
 					}
@@ -55,19 +64,19 @@
 			}, function(reply) {
 				if (reply) {
 					// Grant access
-					return callback();
+					return callback(null);
 				} else {
-					req.errorBody = {
+					res.status(401).json({
 						'message': 'Access denied'
-					};
-					return callback(401);
+					});
+					return callback('finished');
 				}
 			});
 		}
 	};
 
-	var after = function(res, callback) {
-
+	var after = function(req, res, callback) {
+		return callback(null);
 	};
 
 	module.exports = function(client) {

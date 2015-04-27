@@ -13,7 +13,6 @@
 			query['$where'] = function() {
 				return "url".indexOf(obj.prefix) === 0;
 			}.toString().replace('url', req.originalUrl);
-
 			/* Execute query */
 			Resource.findOne(query, function(err, resource) {
 				/* Handle errors */
@@ -28,5 +27,5 @@
 		});
 		return router;
 	};
-	
+
 })();

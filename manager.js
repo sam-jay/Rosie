@@ -7,6 +7,14 @@
 			router		= express.Router(),
 			async			= require('async');
 
+	router.get('/resources', function(req, res) {
+		Resource.find({}, function(err, resources) {
+			if (err) return res.status(500).send(err);
+			resources.url = '/api_manager/resources';
+			return res.status(200).json(resources);
+		});
+	});
+
 	router.get('/resources/:id', function(req, res) {
 		Resource.findbyId(req.params.id, function(err, resource) {
 			if (err) return res.status(500).send(err);
@@ -54,8 +62,8 @@
 	});
 
 	module.exports = function(client) {
-
 		router.post('/updateResourceTokens', function(req, res) {
+			console.log('here');
 			if (req.body) {
 				client.keys('token:*', function(err, rows) {
 					if (err) return res.status(500).send();
@@ -74,7 +82,6 @@
 				});
 			}
 		});
-
 		return router;
 	}
 })();

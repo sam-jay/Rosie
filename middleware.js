@@ -10,8 +10,7 @@
 
 	var execute = function(req, res) {
 		var resource = req.resource,
-				operations = [],
-				apiResponse = {};
+				operations = [];
 
 		/* Sort middleware by priority */
 		var compareFunction = function(x, y) {
@@ -23,10 +22,7 @@
 		/* Register before handlers */
 		before.forEach(function(middleware, index, array) {
 			operations.push(function(callback) {
-				services[middleware.name].before(req, function(err) {
-					if (err) return callback(err);
-					return callback(null);
-				});
+				services[middleware.name].before(req, res, callback);
 			});
 		});
 
@@ -48,13 +44,12 @@
 				if (String(response.statusCode).charAt(0) != '2') {
 					return callback(response.statusCode);
 				}
-				apiResponse = response;
 				response.on('data', function(data) {
 					body += data;
 				}).on('end', function() {
 					console.log('api response body: ' + body);
-					apiResponse.body = body;
-					apiResponse.requestedUrl = req.originalUrl;
+					req.apiResponse = response;
+					req.apiResponse.body = body;
 					return callback(null);
 				});
 			});
@@ -70,17 +65,14 @@
 		/* Register after handlers */
 		after.forEach(function(middleware, index, array) {
 			operations.push(function(callback) {
-				services[middleware.name].after(apiResponse, function(err) {
-					if (err) return callback(err);
-					return callback(null);
-				});
+				services[middleware.name].after(req, res, callback);
 			});
 		});
 
 		/* Execute all handlers in series */
 		async.waterfall(operations, function(err, result) {
-			if (err) return res.status(err).send(req.errorBody ? req.errorBody :
-																						apiResponse.errorBody);
+			if (err === 'finished')
+				return;
 			return res.status(apiResponse.statusCode).send(apiResponse.body);
 		});
 	};
@@ -88,6 +80,8 @@
 	module.exports = function(client) {
 		services['LOGGING'] = require('./logging');
 		services['AUTH'] = require('./auth')(client);
+		services['NONCE'] = require('./nonce')(client);
+		services['ETAG'] = require('./etag')(client);
 		return {
 			execute: execute
 		};

@@ -5,7 +5,7 @@
 			http 		= require('http'),
 			config	= require('./config').logging;
 
-	var before = function(req, callback) {
+	var before = function(req, res, callback) {
 		var options = {
 			hostname: config.hostname,
 			port: config.port,
@@ -43,7 +43,7 @@
 		}).write(body).end();
 	};
 
-	var after = function(res, callback) {
+	var after = function(req, res, callback) {
 
 	};
 
