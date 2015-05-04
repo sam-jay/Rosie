@@ -13,7 +13,7 @@
 					body: ''
 				};
 				var cache = function() {
-					redis.client.set('nonce' + nonce, JSON.stringify(response));
+					redis.client.set('nonce:' + nonce, JSON.stringify(response));
 				};
 				res.__status = res.status;
 				res.__send = res.send;
