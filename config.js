@@ -18,7 +18,7 @@
 	  logging: {
 	  	hostname: 'localhost',
 	  	port: 4001,
-	  	path: '/logger'
+	  	path: '/logger/event'
 	  },
 	  auth: {
 	  	hostname: 'localhost',
