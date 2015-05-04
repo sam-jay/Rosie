@@ -37,18 +37,16 @@
 			};
 			delete options.headers['host'];
 			delete options.headers['content-length'];
-			console.log(options);
 			var newReq = http.request(options, function(response) {
-				console.log(response.statusCode);
+				req.apiResponse = response;
 				var body = '';
-				if (String(response.statusCode).charAt(0) != '2') {
-					return callback(response.statusCode);
+				if (String(response.statusCode).charAt(0) !== '2') {
+					return callback(null);
 				}
 				response.on('data', function(data) {
 					body += data;
 				}).on('end', function() {
 					console.log('api response body: ' + body);
-					req.apiResponse = response;
 					req.apiResponse.body = body;
 					return callback(null);
 				});
@@ -57,14 +55,14 @@
 				console.log(JSON.stringify(req.body));
 				newReq.write(JSON.stringify(req.body));
 			}
-			console.log('before end');
 			newReq.end();
-			console.log('after end');
 		});
 
 		/* Register after handlers */
 		after.forEach(function(middleware, index, array) {
+			console.log('registering after ' + middleware.name);
 			operations.push(function(callback) {
+				console.log('executing after ' + middleware.name);
 				services[middleware.name].after(req, res, callback);
 			});
 		});

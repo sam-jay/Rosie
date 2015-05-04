@@ -5,7 +5,7 @@
 			http 		= require('http'),
 			config	= require('./config').logging;
 
-	var log = function(body, res, callback) {
+	var log = function(body, res) {
 		var options = {
 			hostname: config.hostname,
 			port: config.port,
@@ -16,15 +16,15 @@
 			}
 		};
 		var newReq = http.request(options, function(response) {
-			if (String(response.statusCode) === String('400')) {
+			if (String(response.statusCode).charAt(0) !== '2') {
 				console.log('WINSTON REPLIED NOT OK');
-				response.errorBody = {
+				/*response.errorBody = {
 					message: 'Winston replied NOT OK'
-				};
-				return callback(400);
-			} else if (String(response.statusCode) === String('200')) {
+				};*/
+				//return callback(400); // fix this
+			} else {
 				console.log('WINSTON REPLIED OK');
-				return callback(null);
+				//return callback(null);
 			}
 		});
 		newReq.write(JSON.stringify(body));
@@ -33,10 +33,11 @@
 
 	var before = function(req, res, callback) {
 		var body = {
-			priority: 0,
+			priority: 'low',
 			data: {
 				request: {
-					statusCode: req.statusCode,
+					url: req.originalUrl,
+					method: req.method,
 					headers: {},
 					params: JSON.stringify(req.params),
 					body: JSON.stringify(req.body)
@@ -50,27 +51,33 @@
 		}
 		console.log('logging before');
 		log(body, res, callback);
+		return callback(null);
 	};
 
 	var after = function(req, res, callback) {
 		var body = {
-			priority: 0,
+			priority: 'low',
 			data: {
-				request: {
-					statusCode: req.statusCode,
+				response: {
 					headers: {},
-					params: JSON.stringify(req.params),
-					body: JSON.stringify(req.body)
+					statusCode: req.apiResponse.statusCode,
+					body: JSON.stringify(req.apiResponse.body)
 				}
 			}
 		};
+		console.log('in after');
+		console.log(String(req.apiResponse.statusCode) + ' ' + String(req.apiResponse.statusCode).indexOf('2'));
+		if (String(req.apiResponse.statusCode).indexOf('2') !== 0) {
+			body.priority = 'high';
+		}
 		for (var h in req.apiResponse.headers) {
 		  if (req.apiResponse.headers.hasOwnProperty(h) && h !== 'Authorization') {
-		    body.data.request.headers[h] = req.apiResponse.headers[h];
+		    body.data.response.headers[h] = req.apiResponse.headers[h];
 		  }
 		}
 		console.log('logging after');
 		log(body, res, callback);
+		return callback(null);
 	};
 	module.exports = {
 		before: before,
