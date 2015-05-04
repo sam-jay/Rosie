@@ -31,15 +31,35 @@
 			} 
 			// etag is the same - not modified reply
 			else if (reply === provided_etag) {
-				return callback(304);
+				res.set({ 'ETag' : provided_etag });
+				res.status(304).json({
+					"message": "not modified"
+				});
+				return callback('finished');
 			}
 		});	
 	};
 
 	var after = function(req, res, callback) {
-		var etag_to_write = etag(res.body);
-		redis.client.set('etag:' + res.requestedUrl, etag_to_write);
-		return callback(null);
+		if (req.method !== 'GET') {
+			console.log(req.apiResponse.body);
+			var reqCopy = JSON.parse(JSON.stringify(req.apiResponse.body));
+			reqCopy['timestamp'] = Date.now();
+			var etag_to_write = etag(reqCopy);
+			redis.client.set('etag:' + req.originalUrl, etag_to_write, function(err, reply) {
+				if (err) console.log(err);
+				console.log(reply);
+			});
+			res.set({ 'ETag' : etag_to_write });
+			return callback(null);
+		} else {
+			redis.client.get('etag:' + req.originalUrl, function(err, reply) {
+
+				res.set({ 'ETag' : reply });
+				return callback(null);
+			});
+		}
+		
 	}
 
 })();
